@@ -12,8 +12,11 @@ venv/
 env/
 .ipynb_checkpoints/
 
-# --- Claude Code / local tooling ---
+# --- local tooling / editor ---
 .claude/
+
+# --- assignment brief (kept local, not shared on GitHub) ---
+assessment.txt
 
 # --- OS / editor junk ---
 .DS_Store

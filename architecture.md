@@ -1,7 +1,7 @@
 # 10-K Data Extraction & Evaluation — Architecture & Plan
 
 > Planning document. No code yet. The goal is a **simple, completable** system that meets every
-> requirement in [assessment.txt](assessment.txt) — and, crucially, produces a *first pass with real
+> stated requirement — and, crucially, produces a *first pass with real
 > errors* so there's a genuine error-analysis and iteration story to tell.
 
 ---
@@ -212,11 +212,10 @@ Plotly for charts. No callbacks/state beyond reading CSVs — keep it a thin vie
 
 ```
 report-data-extraction-evaluation/
-├── assessment.txt
 ├── architecture.md            # this file
 ├── README.md                  # how to run
 ├── requirements.txt
-├── .env                        # ANTHROPIC_API_KEY (gitignored)
+├── .env                        # GEMINI_API_KEY (gitignored)
 ├── data/
 │   ├── pdfs/                    # 10 downloaded 10-K PDFs
 │   ├── sources.csv             # company, fiscal_year, source_url
