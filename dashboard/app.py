@@ -38,10 +38,10 @@ st.header("1 · Accuracy by iteration")
 acc = metrics.melt(
     id_vars="version",
     value_vars=["accuracy", "rd_expense", "capex", "long_term_debt"],
-    var_name="metric", value_name="accuracy",
+    var_name="metric", value_name="score",
 )
 st.plotly_chart(
-    px.bar(acc, x="metric", y="accuracy", color="version", barmode="group",
+    px.bar(acc, x="metric", y="score", color="version", barmode="group",
            text_auto=".0%", title="v1 vs v2 — overall and per-field accuracy"),
     use_container_width=True,
 )
