@@ -23,16 +23,16 @@ def ask(prompt: str) -> str:
     Retries with backoff so a free-tier rate limit (429) doesn't abort a run.
     """
     last_error = None
-    for attempt in range(3):
+    for attempt in range(5):
         try:
             response = _client.models.generate_content(
                 model=config.MODEL,
                 contents=prompt,
             )
             return response.text
-        except Exception as e:  # most often a transient rate-limit error
+        except Exception as e:  # transient rate-limit (429) or overload (503)
             last_error = e
-            time.sleep(20 * (attempt + 1))  # 20s, 40s
+            time.sleep(min(60, 15 * (attempt + 1)))  # 15s, 30s, 45s, 60s, 60s
     raise last_error
 
 
