@@ -6,6 +6,7 @@ Swap models, add retries, or move to Ollama later -> change only this file.
 """
 
 import os
+import time
 from dotenv import load_dotenv
 from google import genai
 
@@ -17,12 +18,22 @@ _client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 
 
 def ask(prompt: str) -> str:
-    """Send a plain-text prompt to Gemini and return the text reply."""
-    response = _client.models.generate_content(
-        model=config.MODEL,
-        contents=prompt,
-    )
-    return response.text
+    """Send a plain-text prompt to Gemini and return the text reply.
+
+    Retries with backoff so a free-tier rate limit (429) doesn't abort a run.
+    """
+    last_error = None
+    for attempt in range(3):
+        try:
+            response = _client.models.generate_content(
+                model=config.MODEL,
+                contents=prompt,
+            )
+            return response.text
+        except Exception as e:  # most often a transient rate-limit error
+            last_error = e
+            time.sleep(20 * (attempt + 1))  # 20s, 40s
+    raise last_error
 
 
 if __name__ == "__main__":
