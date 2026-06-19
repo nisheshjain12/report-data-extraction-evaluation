@@ -4,4 +4,6 @@ pdfplumber          # pull text out of the PDF (used by the naive v1 extractor)
 pandas              # tables / CSV handling for results and evaluation
 python-dotenv       # load the GEMINI_API_KEY from a local .env file
 
-# (Phase 5 dashboard adds: streamlit, plotly — installed later)
+# Dashboard (Phase 5) — also what Streamlit Community Cloud installs on deploy
+streamlit           # the dashboard UI
+plotly              # charts in the dashboard
