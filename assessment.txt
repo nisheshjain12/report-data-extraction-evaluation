@@ -1,0 +1,48 @@
+Interview Mini-Project: 10-K Report Data
+Extraction and Evaluation
+
+Objective
+Build a system that extracts specific numerical data from 10-K reports of public companies and
+evaluates the accuracy of those extractions.
+
+Requirements
+
+Input
+Obtain at least ten 10-K reports from different public companies. All reports must be provided in PDF
+format.
+Output
+Data Extraction
+Select three distinct numerical fields to extract from each report. Aim for fields that are reasonably
+challenging — not so simple that extraction is trivial (e.g., a single top-level "Total Revenue" line), but not
+so obscure that they become a research rabbit hole. Good candidates include segment revenues,
+geographic breakdowns, or operating metrics that require some interpretation to locate consistently
+across reports. The goal is to have a meaningful but completable iteration story: your first pass should
+have some errors worth analyzing and fixing.
+Evaluation
+Prepare a ground truth dataset for your chosen fields and evaluate your extraction results against it
+using appropriate metrics.
+
+Iteration and Improvement
+Initial Challenge: The selected fields should present a meaningful challenge — your first extraction
+pass should not be perfect.
+Refinement Cycle: Perform at least one iteration to improve extraction quality based on observed
+errors.
+Error Analysis: Be prepared to walk through your error analysis methodology and explain how it
+informed your improvements.
+
+Project Guidelines
+Individual Work: Complete this project independently.
+AI Assistance: You are encouraged to use AI tools for research and coding support.
+
+Bonus
+
+Build a data visualization dashboard to display extracted values and system performance. Suggested
+visualizations:
+Compare the three extracted fields (e.g., revenue, assets) across all ten reports.
+Show how extraction accuracy metrics changed across refinement cycles.
+
+Presentation
+
+Present your project, covering your approach and findings. Be prepared to make live modifications to
+your system during the interview to demonstrate a thorough understanding of the code and its underlying
+principles.

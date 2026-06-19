@@ -1,0 +1,31 @@
+company,fiscal_year,field,value_millions,value_usd,unit_in_filing,source_page,source_line,note
+AAPL,2025,rd_expense,34550,34550000000,millions,41,Research and development,
+AAPL,2025,capex,12715,12715000000,millions,46,"Payments for acquisition of property, plant and equipment",magnitude of negative cash-flow line
+AAPL,2025,long_term_debt,78328,78328000000,millions,43,Term debt (non-current),"Apple labels LT debt 'Term debt'; excludes current portion 12,350"
+AMZN,2025,rd_expense,108521,108521000000,millions,58,Technology and infrastructure,Amazon reports no 'R&D' line; 'Technology and infrastructure' is the R&D proxy; columns ascending (2025=rightmost)
+AMZN,2025,capex,131819,131819000000,millions,57,Purchases of property and equipment,"gross cash-flow line; net-of-proceeds was 128,320"
+AMZN,2025,long_term_debt,65648,65648000000,millions,60,Long-term debt (non-current),"balance sheet header 2024|2025; excludes current portion 2,748"
+CSCO,2025,rd_expense,9300,9300000000,millions,92,Research and development,
+CSCO,2025,capex,905,905000000,millions,94,Acquisition of property and equipment,
+CSCO,2025,long_term_debt,22861,22861000000,millions,91,Long-term debt (non-current),"excludes current portion 1,750"
+GOOGL,2025,rd_expense,61087,61087000000,millions,84,Research and development,"columns ascending; 2025=rightmost (61,087)"
+GOOGL,2025,capex,91447,91447000000,millions,87,Purchases of property and equipment,
+GOOGL,2025,long_term_debt,46547,46547000000,millions,83,Long-term debt,"carrying value; face value 49,085"
+INTC,2025,rd_expense,13774,13774000000,millions,101,Research and development,
+INTC,2025,capex,14646,14646000000,millions,104,"Additions to property, plant and equipment",gross cash-flow line
+INTC,2025,long_term_debt,44086,44086000000,millions,151,Total long-term debt (non-current),"gross 46,585 less current 2,499"
+META,2025,rd_expense,57372,57372000000,millions,146,Research and development,
+META,2025,capex,69691,69691000000,millions,150,Purchases of property and equipment,"cash-flow PP&E line; total capex incl finance leases was 72,220"
+META,2025,long_term_debt,58744,58744000000,millions,145,Long-term debt,senior unsecured notes
+MSFT,2025,rd_expense,32488,32488000000,millions,71,Research and development,
+MSFT,2025,capex,64551,64551000000,millions,74,Additions to property and equipment,
+MSFT,2025,long_term_debt,40152,40152000000,millions,101,Long-term debt (non-current),"excludes current portion 2,999"
+NVDA,2026,rd_expense,18497,18497000000,millions,71,Research and development,"fiscal 2026 ended Jan 25, 2026"
+NVDA,2026,capex,6042,6042000000,millions,75,Purchases related to property and equipment and intangible assets,
+NVDA,2026,long_term_debt,7469,7469000000,millions,73,Long-term debt,
+ORCL,2025,rd_expense,9860,9860000000,millions,112,Research and development,
+ORCL,2025,capex,21215,21215000000,millions,115,Capital expenditures,
+ORCL,2025,long_term_debt,85297,85297000000,millions,111,"Notes payable and other borrowings, non-current","Oracle's LT-debt label; excludes current portion 7,271"
+TSLA,2025,rd_expense,6411,6411000000,millions,82,Research and development,
+TSLA,2025,capex,8527,8527000000,millions,87,"Purchases of property and equipment excluding finance leases, net of sales",
+TSLA,2025,long_term_debt,152,152000000,millions,120,"Long-term debt and finance leases, net of current portion",Tesla combines debt + finance leases; excludes current portion 71

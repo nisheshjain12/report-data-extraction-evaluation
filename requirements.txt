@@ -1,0 +1,7 @@
+# Core dependencies for the 10-K extraction project
+google-genai        # free Gemini API client (the extraction model)
+pdfplumber          # pull text out of the PDF (used by the naive v1 extractor)
+pandas              # tables / CSV handling for results and evaluation
+python-dotenv       # load the GEMINI_API_KEY from a local .env file
+
+# (Phase 5 dashboard adds: streamlit, plotly — installed later)
