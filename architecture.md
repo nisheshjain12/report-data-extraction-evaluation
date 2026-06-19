@@ -24,11 +24,10 @@
 ## 2. Design principles
 
 - **Keep it boring.** Plain Python scripts + CSVs. No database, no queue, no web backend.
-- **Free model, fixed across iterations.** We use a free LLM (Google **Gemini Flash** free tier — §6).
-  Improvements must come from *pipeline/prompt* changes, not from swapping models — that's what makes
-  the iteration story credible, and a free model keeps v1 honestly imperfect. The LLM call is isolated
-  in one module (`src/llm.py`) so the provider can be swapped (Ollama, Claude, …) without touching the
-  rest of the pipeline.
+- **Free model, prompt-driven iteration.** We use a free LLM (Google **Gemini** free tier — §6),
+  isolated in one module (`src/llm.py`) so the model/provider can be swapped without touching the rest
+  of the pipeline. The v1→v2 improvement comes from a **prompt** change, not new logic. *(A free-tier
+  daily request cap forced a model swap mid-project — see §6 and §15.)*
 - **The PDF is the source of truth.** We parse the actual PDF (not pre-cleaned data), because the
   messiness of PDF tables is exactly what creates the errors worth analyzing.
 - **Everything is reproducible.** A single command regenerates each iteration's results and metrics.
@@ -86,7 +85,8 @@ Tesla) all publish 10-K PDFs on their IR pages.
 ## 5. Ground truth
 
 Manual, one-time, ~30 values. Read each PDF and record the **correct** value for the most recent fiscal
-year, normalized to **absolute USD**.
+year, in **millions** (as the statements report). Stored as both `value_millions` and `value_usd`;
+**evaluation compares in millions**.
 
 `data/ground_truth.csv`:
 
@@ -106,11 +106,13 @@ Capex stored as a **positive** magnitude; we decide once and apply the same sign
 
 ## 6. Extraction pipeline
 
-Same model for both iterations: **Google `gemini-2.5-flash` on the free tier** (no payment / no credit
-card via Google AI Studio). It supports native PDF input, structured JSON output, and a 1M-token context
-— everything the pipeline needs. Keep it fixed across v1/v2 so improvements come from the pipeline, not
-the model. (Offline alternative: a local **Ollama** model — see §11. Whichever we pick, the model call
-lives only in `src/llm.py`.) Both iterations output the same JSON shape so evaluation code is shared.
+Model: **Google Gemini on the free tier** (no payment / no credit card via Google AI Studio), called
+only through `src/llm.py`. We extract the full pdfplumber text and ask for the three numbers as JSON;
+both iterations share the same output shape so the evaluation code is reused.
+
+> **As-built note:** a free-tier *daily request cap* on `gemini-2.5-flash` forced a model change
+> mid-project. v1's kept results are from `gemini-2.5-flash`; v2 ran on `gemini-2.5-flash-lite`. The
+> **prompt** is the change that drives the v1→v2 jump; the model swap is a known caveat (§15).
 
 ### Iteration 1 — naive baseline (designed to be wrong sometimes)
 
@@ -143,6 +145,11 @@ Driven by *what the error analysis finds* (§7). The planned levers, in priority
 We won't necessarily ship all four — we ship the ones the error analysis says matter, and document the
 ones we skipped and why. That *is* the iteration narrative.
 
+> **As built:** the error analysis found the dominant errors were **units** and **field-definition
+> ambiguity** — both fixable in the prompt. So v2 shipped **only lever 3** (pin the unit to "millions" +
+> precise capex/long-term-debt definitions). Native-PDF (lever 1), JSON-schema output (lever 2), and
+> code normalization (lever 4) were not needed to reach 93% and remain future work (§15).
+
 ### Shared output contract
 
 `results/extraction_v1.csv`, `results/extraction_v2.csv` — same columns as `ground_truth.csv` plus
@@ -154,13 +161,13 @@ ones we skipped and why. That *is* the iteration narrative.
 
 ### Metrics (`src/evaluate.py` → `results/metrics.csv`)
 
-Compare normalized absolute-USD predicted vs truth.
+Compare predicted vs truth **in millions** (with tolerance).
 
-- **Tolerance accuracy** — correct if relative error ≤ **0.5%** (absorbs rounding/disclosed-precision
-  differences). Reported overall and **per field**.
-- **MAPE** — mean absolute % error, to size *how wrong* the misses are (a 1000× unit error vs a
-  rounding blip look identical under accuracy alone).
-- **Counts per error category** (below).
+- **Tolerance accuracy** — correct if relative error ≤ **0.5%** (absorbs rounding). Reported overall and
+  **per field**. *(Implemented.)*
+- **Counts per error category** — `correct` / `unit_scale` / `missing` / `wrong` (the implementation
+  collapses the 6-category taxonomy below into these 4). *(Implemented.)*
+- **MAPE** — mean absolute % error, to size *how wrong* the misses are. *(Planned, not yet built.)*
 
 ### Error taxonomy (the heart of the project)
 
@@ -185,10 +192,11 @@ Every prediction that isn't "correct" gets exactly one label:
 
 ## 8. The iteration story (what we'll actually narrate)
 
-> v1 baseline (text + naive prompt) → measure → categorize errors → most are `unit_scale` and
-> `wrong_period` → v2 adds page-targeted PDF input + fiscal-year-pinned structured prompt + a
-> deterministic unit-normalization step → accuracy rises, the error histogram collapses toward
-> `wrong_line_item` edge cases → discuss what a v3 would target.
+> v1 baseline (text + naive prompt): **80%** (24/30). Errors: 3 `unit_scale` (Google returned dollars,
+> not millions) + 3 `wrong` (capex *net*-vs-*gross* on Amazon, capex *incl. finance leases* on Meta,
+> Tesla's debt line). → v2 fixes the two themes **in the prompt** ("report in millions" + precise field
+> definitions) → **93.3%** (28/30): `unit_scale` 3→0, R&D now 100%. Two hard cases remain (Amazon capex,
+> Tesla debt) → v3 candidates (native-PDF input / few-shot).
 
 This gives concrete before/after numbers and a clear cause→fix→effect chain, which is exactly what
 requirements 5–7 ask for.
@@ -212,26 +220,26 @@ Plotly for charts. No callbacks/state beyond reading CSVs — keep it a thin vie
 
 ```
 report-data-extraction-evaluation/
-├── architecture.md            # this file
-├── README.md                  # how to run
+├── architecture.md            # this planning / as-built doc
 ├── requirements.txt
-├── .env                        # GEMINI_API_KEY (gitignored)
+├── .env.example               # template; the real .env is gitignored
+├── .gitignore
 ├── data/
 │   ├── pdfs/                    # 10 downloaded 10-K PDFs
-│   ├── sources.csv             # company, fiscal_year, source_url
-│   └── ground_truth.csv        # manual labels
+│   └── ground_truth.csv        # hand-labelled answer key (value_millions + value_usd)
 ├── src/
 │   ├── config.py               # companies, fields, model id, tolerance
-│   ├── extract.py              # run v1/v2 over all PDFs → results CSV
-│   ├── pdf_utils.py            # pdfplumber text + statement-page finder
-│   ├── normalize.py            # unit/scale + sign normalization
-│   └── evaluate.py             # metrics + error categorization
+│   ├── llm.py                  # the only place we call Gemini
+│   ├── pdf_utils.py            # pdfplumber text extraction
+│   ├── extract.py              # v1 + v2 prompts; run over all PDFs → results CSV
+│   └── evaluate.py             # metrics + error categories
 ├── results/
-│   ├── extraction_v1.csv
-│   ├── extraction_v2.csv
-│   └── metrics.csv
+│   ├── extraction_v1.csv       # v1 predictions
+│   ├── extraction_v2.csv       # v2 predictions
+│   ├── scored.csv              # per-row: predicted vs truth + category
+│   └── metrics.csv             # accuracy per version + category counts
 └── dashboard/
-    └── app.py                  # Streamlit
+    └── app.py                  # Streamlit dashboard
 ```
 
 ---
@@ -300,4 +308,28 @@ report-data-extraction-evaluation/
 - **Sign/convention drift** (capex negative, debt gross vs net) → fix conventions once in `normalize.py`
   and document them; apply identically to predictions and truth.
 - **PDF size** > limits for a couple of filings → v2's page-targeting sidesteps this; for v1, cap text.
+
+---
+
+## 15. As-built summary (what we actually did)
+
+| | Result |
+|---|---|
+| Companies × fields | 10 × 3 = 30 values; all 10-K PDFs in `data/pdfs/` |
+| Ground truth | hand-labelled, page-cited (`data/ground_truth.csv`) |
+| **v1 (naive prompt)** | **80%** (24/30) — 3 `unit_scale`, 3 `wrong` |
+| **v2 (prompt: units + definitions)** | **93.3%** (28/30) — `unit_scale` 3→0; 2 `wrong` left (Amazon capex, Tesla debt) |
+| Dashboard | Streamlit (`dashboard/app.py`), deployable on Streamlit Cloud |
+
+**Deviations from the plan (and why):**
+- **Model not held fixed.** A free-tier *daily request cap* on `gemini-2.5-flash` forced a switch to
+  `gemini-2.5-flash-lite` mid-project. v1's kept results are flash; v2 is flash-lite. The **prompt** is
+  the headline change; the model swap is a known caveat — cleanly removable by re-running both on one
+  model.
+- **v2 = prompt only.** Error analysis showed the errors were unit + definition ambiguity, both
+  prompt-fixable. The other planned levers — native-PDF pages, JSON-schema output, `normalize.py` — were
+  not needed to reach 93% and are **future work** (they'd target the 2 remaining errors).
+- **Canonical unit = millions** (not absolute USD, as §5 first planned) — matches how statements report.
+- **Metrics shipped:** tolerance-accuracy + 4 error categories. **MAPE** deferred.
+- **Not built:** `normalize.py`, `data/sources.csv`, the `pdf_utils` page-finder, a README.
 ```

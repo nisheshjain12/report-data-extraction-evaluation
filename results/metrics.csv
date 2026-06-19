@@ -1,3 +1,3 @@
 version,accuracy,n,rd_expense,capex,long_term_debt,#correct,#unit_scale,#missing,#wrong
-v1,0.0,30,0.0,0.0,0.0,0,25,1,4
+v1,0.8,30,0.9,0.7,0.8,24,3,0,3
 v2,0.933,30,1.0,0.9,0.9,28,0,0,2

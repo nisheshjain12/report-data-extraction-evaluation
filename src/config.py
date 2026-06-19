@@ -18,7 +18,7 @@ GROUND_TRUTH = ROOT / "data" / "ground_truth.csv"  # our hand-checked answer key
 RESULTS_DIR = ROOT / "results"                     # extraction outputs go here
 
 # --- The model (free Gemini tier) ----------------------------------------------
-MODEL = "gemini-2.5-flash-lite"  # higher free-tier quota than gemini-2.5-flash
+MODEL = "gemini-2.5-flash"  # both v1 and v2 run on this model (fair comparison)
 
 # --- The three numbers we extract, with plain-English definitions --------------
 # These definitions get fed to the model in v2 to steer it. Editing a definition
