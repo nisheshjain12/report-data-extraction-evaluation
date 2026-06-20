@@ -1,10 +1,10 @@
 """
-Turn a 10-K PDF into plain text.
+Text extraction from 10-K PDFs.
 
-The v1 (naive) extractor feeds this flat text straight to the model. Notice how
-tables collapse into runs of numbers with the labels detached — THAT mess is
-why v1 will make mistakes (wrong column, wrong line item, units). It's
-intentional: it gives us real errors to analyze and then fix in v2.
+`read_text` returns the document as flattened plain text (used by v1 and v2).
+`read_text_with_pages` adds per-page markers so the model can cite a source page
+(used by v3). Flattening discards table structure, which is the main source of
+extraction error for the text-based versions (wrong column, wrong line item, units).
 """
 
 import pdfplumber
@@ -21,9 +21,21 @@ def read_text(stem: str) -> str:
             pages.append(page.extract_text() or "")
     return "\n".join(pages)
 
+def read_text_with_pages(stem: str) -> str:
+    """Like read_text, but prefix each page with a marker so the model can cite the PDF page.
+
+    Used by v3 (structured output) so the model can report a `source_page` for traceability.
+    """
+    path = config.PDF_DIR / f"{stem}.pdf"
+    pages = []
+    with pdfplumber.open(path) as pdf:
+        for i, page in enumerate(pdf.pages, start=1):
+            pages.append(f"===== PDF PAGE {i} =====\n" + (page.extract_text() or ""))
+    return "\n".join(pages)
+
 
 if __name__ == "__main__":
-    # Demo on Apple: show how much text we get and how messy a table looks.
+    # Manual check: total text length and a sample around "research and development".
     text = read_text("AAPL_2025")
     print(f"Characters extracted: {len(text):,}")
 

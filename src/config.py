@@ -1,12 +1,11 @@
 """
-Central settings for the 10-K extraction project.
+Central configuration for the 10-K extraction pipeline.
 
-Everything you might want to tweak during a demo lives HERE, so you only ever
-edit one file:
-  - want a different model?            change MODEL
-  - redefine a field?                  edit FIELDS
-  - add/remove a company?              edit COMPANIES
-  - looser/stricter "correct"?         change TOLERANCE
+All tunable settings live here so they can be changed in one place:
+  - MODEL      the Gemini model used for extraction
+  - FIELDS     the three fields to extract, with their definitions
+  - COMPANIES  the reports to process and their fiscal years
+  - TOLERANCE  the relative error within which a prediction counts as correct
 """
 
 from pathlib import Path
@@ -18,11 +17,10 @@ GROUND_TRUTH = ROOT / "data" / "ground_truth.csv"  # our hand-checked answer key
 RESULTS_DIR = ROOT / "results"                     # extraction outputs go here
 
 # --- The model (free Gemini tier) ----------------------------------------------
-MODEL = "gemini-2.5-flash"  # both v1 and v2 run on this model (fair comparison)
+MODEL = "gemini-2.5-flash-lite"  # used for v2 and v3 (v1's kept results are from gemini-2.5-flash)
 
-# --- The three numbers we extract, with plain-English definitions --------------
-# These definitions get fed to the model in v2 to steer it. Editing a definition
-# is one of the easiest "improve the extraction" levers to show live.
+# --- The three fields to extract, with their definitions -----------------------
+# The definitions are sent to the model in v2/v3 to steer extraction.
 FIELDS = {
     "rd_expense":
         "Research & development expense for the fiscal year, from the income statement.",

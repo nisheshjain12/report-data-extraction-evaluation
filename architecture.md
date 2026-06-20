@@ -146,9 +146,10 @@ We won't necessarily ship all four — we ship the ones the error analysis says 
 ones we skipped and why. That *is* the iteration narrative.
 
 > **As built:** the error analysis found the dominant errors were **units** and **field-definition
-> ambiguity** — both fixable in the prompt. So v2 shipped **only lever 3** (pin the unit to "millions" +
-> precise capex/long-term-debt definitions). Native-PDF (lever 1), JSON-schema output (lever 2), and
-> code normalization (lever 4) were not needed to reach 93% and remain future work (§15).
+> ambiguity**, both prompt-fixable, so **v2** shipped lever 3 (pin the unit to "millions" + precise
+> capex/long-term-debt definitions). **v3** then added lever 2 — **JSON-schema (structured) output** via
+> Gemini's `response_schema`, which guarantees valid JSON and records per-value traceability (unit,
+> fiscal year, source page). Native-PDF (lever 1) and code normalization (lever 4) remain future work (§15).
 
 ### Shared output contract
 
@@ -220,6 +221,7 @@ Plotly for charts. No callbacks/state beyond reading CSVs — keep it a thin vie
 
 ```
 report-data-extraction-evaluation/
+├── README.md                  # how to run + overview
 ├── architecture.md            # this planning / as-built doc
 ├── requirements.txt
 ├── .env.example               # template; the real .env is gitignored
@@ -319,6 +321,7 @@ report-data-extraction-evaluation/
 | Ground truth | hand-labelled, page-cited (`data/ground_truth.csv`) |
 | **v1 (naive prompt)** | **80%** (24/30) — 3 `unit_scale`, 3 `wrong` |
 | **v2 (prompt: units + definitions)** | **93.3%** (28/30) — `unit_scale` 3→0; 2 `wrong` left (Amazon capex, Tesla debt) |
+| **v3 (structured output)** | Schema-guaranteed JSON + traceability (unit / fiscal year / source page); validated on one company, full 10-run pending a free-tier quota reset |
 | Dashboard | Streamlit (`dashboard/app.py`), deployable on Streamlit Cloud |
 
 **Deviations from the plan (and why):**
@@ -326,10 +329,10 @@ report-data-extraction-evaluation/
   `gemini-2.5-flash-lite` mid-project. v1's kept results are flash; v2 is flash-lite. The **prompt** is
   the headline change; the model swap is a known caveat — cleanly removable by re-running both on one
   model.
-- **v2 = prompt only.** Error analysis showed the errors were unit + definition ambiguity, both
-  prompt-fixable. The other planned levers — native-PDF pages, JSON-schema output, `normalize.py` — were
-  not needed to reach 93% and are **future work** (they'd target the 2 remaining errors).
+- **Iterations shipped:** v2 = prompt (units + definitions); **v3 = structured output** (JSON schema +
+  per-value traceability). The remaining planned levers — native-PDF page targeting and code
+  normalization (`normalize.py`) — are **future work** (they'd target the 2 remaining errors).
 - **Canonical unit = millions** (not absolute USD, as §5 first planned) — matches how statements report.
 - **Metrics shipped:** tolerance-accuracy + 4 error categories. **MAPE** deferred.
-- **Not built:** `normalize.py`, `data/sources.csv`, the `pdf_utils` page-finder, a README.
+- **Not built:** `normalize.py`, `data/sources.csv`, native-PDF page targeting.
 ```
