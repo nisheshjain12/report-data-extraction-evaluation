@@ -146,10 +146,9 @@ We won't necessarily ship all four — we ship the ones the error analysis says 
 ones we skipped and why. That *is* the iteration narrative.
 
 > **As built:** the error analysis found the dominant errors were **units** and **field-definition
-> ambiguity**, both prompt-fixable, so **v2** shipped lever 3 (pin the unit to "millions" + precise
-> capex/long-term-debt definitions). **v3** then added lever 2 — **JSON-schema (structured) output** via
-> Gemini's `response_schema`, which guarantees valid JSON and records per-value traceability (unit,
-> fiscal year, source page). Native-PDF (lever 1) and code normalization (lever 4) remain future work (§15).
+> ambiguity** — both fixable in the prompt. So v2 shipped **only lever 3** (pin the unit to "millions" +
+> precise capex/long-term-debt definitions). The other levers — JSON-schema output (lever 2), native-PDF
+> (lever 1), and code normalization (lever 4) — were not needed to reach 93% and remain future work (§15).
 
 ### Shared output contract
 
@@ -197,7 +196,7 @@ Every prediction that isn't "correct" gets exactly one label:
 > not millions) + 3 `wrong` (capex *net*-vs-*gross* on Amazon, capex *incl. finance leases* on Meta,
 > Tesla's debt line). → v2 fixes the two themes **in the prompt** ("report in millions" + precise field
 > definitions) → **93.3%** (28/30): `unit_scale` 3→0, R&D now 100%. Two hard cases remain (Amazon capex,
-> Tesla debt) → v3 candidates (native-PDF input / few-shot).
+> Tesla debt) → candidates for a further iteration (native-PDF input / few-shot).
 
 This gives concrete before/after numbers and a clear cause→fix→effect chain, which is exactly what
 requirements 5–7 ask for.
@@ -254,7 +253,7 @@ report-data-extraction-evaluation/
 | LLM | `google-genai` SDK, `gemini-2.5-flash` (free tier, fixed) | free; native PDF/table reading; structured outputs; 1M context |
 | PDF → text | `pdfplumber` | simple; its table-flattening *creates* v1's errors (a feature here) |
 | PDF → model | native PDF (inline base64 / Gemini File API) for v2's targeted pages | preserves table structure for accurate reads |
-| Schema/validation | `pydantic` → Gemini `responseSchema` | typed, validated extraction in v2 |
+| Schema/validation | `pydantic` → Gemini `responseSchema` | for structured output (future work; v1/v2 parse JSON directly) |
 | LLM client | isolated in `src/llm.py` | one function `extract(pdf/text, prompt, schema)` → swap provider (Ollama/Claude) freely |
 | Data | `pandas` + CSV | no DB needed for 30 rows |
 | Dashboard | `streamlit` + `plotly` | fastest path to the bonus |
@@ -321,7 +320,6 @@ report-data-extraction-evaluation/
 | Ground truth | hand-labelled, page-cited (`data/ground_truth.csv`) |
 | **v1 (naive prompt)** | **80%** (24/30) — 3 `unit_scale`, 3 `wrong` |
 | **v2 (prompt: units + definitions)** | **93.3%** (28/30) — `unit_scale` 3→0; 2 `wrong` left (Amazon capex, Tesla debt) |
-| **v3 (structured output)** | Schema-guaranteed JSON + traceability (unit / fiscal year / source page); validated on one company, full 10-run pending a free-tier quota reset |
 | Dashboard | Streamlit (`dashboard/app.py`), deployable on Streamlit Cloud |
 
 **Deviations from the plan (and why):**
@@ -329,9 +327,9 @@ report-data-extraction-evaluation/
   `gemini-2.5-flash-lite` mid-project. v1's kept results are flash; v2 is flash-lite. The **prompt** is
   the headline change; the model swap is a known caveat — cleanly removable by re-running both on one
   model.
-- **Iterations shipped:** v2 = prompt (units + definitions); **v3 = structured output** (JSON schema +
-  per-value traceability). The remaining planned levers — native-PDF page targeting and code
-  normalization (`normalize.py`) — are **future work** (they'd target the 2 remaining errors).
+- **v2 = prompt only.** Error analysis showed the errors were unit + definition ambiguity, both
+  prompt-fixable. The other planned levers — structured output (JSON schema), native-PDF pages, and code
+  normalization (`normalize.py`) — were not needed to reach 93% and are **future work**.
 - **Canonical unit = millions** (not absolute USD, as §5 first planned) — matches how statements report.
 - **Metrics shipped:** tolerance-accuracy + 4 error categories. **MAPE** deferred.
 - **Not built:** `normalize.py`, `data/sources.csv`, native-PDF page targeting.

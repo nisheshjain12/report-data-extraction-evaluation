@@ -61,7 +61,7 @@ def main():
     gt = {(r.company, r.field): r.value_millions for r in gt_df.itertuples()}
 
     frames = []
-    for name in ["extraction_v1.csv", "extraction_v2.csv", "extraction_v3.csv"]:   # score whichever exist
+    for name in ["extraction_v1.csv", "extraction_v2.csv"]:   # score whichever exist
         path = config.RESULTS_DIR / name
         if path.exists():
             frames.append(score_file(path, gt))

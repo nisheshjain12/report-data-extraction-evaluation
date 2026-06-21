@@ -17,10 +17,10 @@ GROUND_TRUTH = ROOT / "data" / "ground_truth.csv"  # our hand-checked answer key
 RESULTS_DIR = ROOT / "results"                     # extraction outputs go here
 
 # --- The model (free Gemini tier) ----------------------------------------------
-MODEL = "gemini-2.5-flash-lite"  # used for v2 and v3 (v1's kept results are from gemini-2.5-flash)
+MODEL = "gemini-2.5-flash-lite"  # used for v2 (v1's kept results are from gemini-2.5-flash)
 
 # --- The three fields to extract, with their definitions -----------------------
-# The definitions are sent to the model in v2/v3 to steer extraction.
+# The definitions are sent to the model in v2 to steer extraction.
 FIELDS = {
     "rd_expense":
         "Research & development expense for the fiscal year, from the income statement.",

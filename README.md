@@ -29,12 +29,9 @@ refined, schema-constrained extractor.
 |---|---|---|
 | v1 | Naive prompt over flattened PDF text | **80%** (24/30) |
 | v2 | Prompt with explicit units + field definitions | **93.3%** (28/30) |
-| v3 | Schema-constrained JSON output + per-value traceability | Implemented (full run subject to daily quota) |
 
 The v1 → v2 improvement was driven by error analysis: v1's errors were unit
-inconsistencies and field-definition ambiguity, both addressed in the v2 prompt. v3 uses
-the model's structured-output mode so the JSON response is schema-guaranteed (no manual
-parsing) and each value carries traceability — `unit`, `fiscal_year`, and `source_page`.
+inconsistencies and field-definition ambiguity, both addressed in the v2 prompt.
 
 ## How it works
 
@@ -46,8 +43,8 @@ PDF ──pdfplumber──► text ──► Gemini (prompt) ──► JSON ─�
 |---|---|
 | `src/config.py` | Central configuration: model, fields, companies, tolerance, paths |
 | `src/pdf_utils.py` | Extract text from a PDF |
-| `src/llm.py` | The single Gemini client (text and structured-output calls) |
-| `src/extract.py` | The three extractor versions (v1 / v2 / v3) |
+| `src/llm.py` | The single Gemini client (all model calls) |
+| `src/extract.py` | The extractor versions (v1 / v2) |
 | `src/evaluate.py` | Score predictions vs ground truth; categorize errors |
 | `dashboard/app.py` | Streamlit dashboard over the result CSVs |
 
@@ -74,8 +71,7 @@ so no data download is required.
 # Extraction — writes results/extraction_<version>.csv
 python src/extract.py v1                 # naive baseline
 python src/extract.py v2                 # refined prompt
-python src/extract.py v3                 # structured output
-python src/extract.py v3 AAPL_2025       # a single company
+python src/extract.py v2 AAPL_2025       # a single company
 
 # Evaluation — writes results/metrics.csv and results/scored.csv
 python src/evaluate.py
@@ -87,7 +83,7 @@ streamlit run dashboard/app.py
 ### Free-tier rate limits
 
 The Gemini free tier allows roughly **20 requests per day, per model**. A full extraction
-run is 10 requests, so running v1 + v2 + v3 in one day can exceed the cap. On
+run is 10 requests, so running v1 + v2 in one day uses the full daily allowance. On
 `429 RESOURCE_EXHAUSTED`, wait for the daily reset or change `MODEL` in `src/config.py`
 to another model (each model has its own daily quota).
 
@@ -117,6 +113,21 @@ report-data-extraction-evaluation/
 └── dashboard/
     └── app.py
 ```
+
+## Further improvements
+
+- **Structured output** — constrain the model's response to a schema (e.g. Gemini's
+  `response_schema` with a Pydantic model) so the JSON is guaranteed valid (no manual
+  parsing) and each value can carry traceability (unit, fiscal year, source page). A quick
+  prototype showed this improves robustness and auditability, but on a lightweight model it
+  can trade a little accuracy for the extra structure — best paired with a more capable model.
+- **Native-PDF input** — send the financial-statement pages to the model as PDF/images
+  instead of flattened text, so it reads the tables directly (targets the remaining
+  capex / long-term-debt line-item errors).
+- **Deterministic normalization** — handle units and sign conventions in code rather than
+  relying on the prompt.
+- **MAPE** — report mean absolute percentage error alongside accuracy to quantify how far
+  off the misses are, not just pass/fail.
 
 ## Notes & limitations
 

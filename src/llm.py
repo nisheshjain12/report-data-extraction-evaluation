@@ -2,8 +2,7 @@
 Single integration point for the Gemini model.
 
 Isolating all model calls here keeps the extraction logic independent of the
-provider, and centralizes concerns like retries and the API key. `ask` returns
-text; `ask_structured` returns a schema-validated object.
+provider, and centralizes concerns like retries and the API key.
 """
 
 import os
@@ -34,32 +33,6 @@ def ask(prompt: str) -> str:
         except Exception as e:  # transient rate-limit (429) or overload (503)
             last_error = e
             time.sleep(min(60, 15 * (attempt + 1)))  # 15s, 30s, 45s, 60s, 60s
-    raise last_error
-
-
-def ask_structured(prompt: str, schema):
-    """Send a prompt and get back a parsed Pydantic object (used by v3).
-
-    Passes Gemini's `response_schema` so the API GUARANTEES valid JSON matching `schema`
-    — no manual parsing, no parse failures. Same retry/backoff as ask().
-    """
-    last_error = None
-    for attempt in range(5):
-        try:
-            response = _client.models.generate_content(
-                model=config.MODEL,
-                contents=prompt,
-                config={
-                    "response_mime_type": "application/json",
-                    "response_schema": schema,
-                },
-            )
-            if response.parsed is not None:
-                return response.parsed
-            return schema.model_validate_json(response.text)  # fallback
-        except Exception as e:
-            last_error = e
-            time.sleep(min(60, 15 * (attempt + 1)))
     raise last_error
 
 
